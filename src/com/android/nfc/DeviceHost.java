@@ -29,7 +29,7 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 *
-*  Copyright 2018-2020 NXP
+*  Copyright 2018-2021 NXP
 *
 ******************************************************************************/
 package com.android.nfc;
@@ -60,6 +60,12 @@ public interface DeviceHost {
         public void onSeListenDeactivated();
 
         public void onSeInitialized();
+
+        /**
+         * Notifies SRD event
+         */
+        public void onNotifySrdEvt(int event);
+
         /**
          * Notifies P2P Device detected, to activate LLCP link
          */
@@ -75,12 +81,18 @@ public interface DeviceHost {
         public void onRemoteFieldActivated();
 
         public void onRemoteFieldDeactivated();
+
+        public void onHwErrorReported();
         /**
          * Notifies SWP Reader Events.
          */
         public void onScrNotifyEvents(int event);
 
         public void onNfcTransactionEvent(byte[] aid, byte[] data, String seName);
+
+        public void onLxDebugConfigData(int len, byte[] data);
+
+        public void notifyTagAbort();
     }
 
     public interface TagEndpoint {
@@ -219,11 +231,9 @@ public interface DeviceHost {
     public int[] doGetActiveSecureElementList();
     public boolean sendRawFrame(byte[] data);
 
-    public boolean routeAid(byte[] aid, int route, int aidInfo, int powerState);
+    public boolean routeAid(byte[] aid, int route, int aidInfo, int power);
 
     public boolean unrouteAid(byte[] aid);
-
-    public int getAidTableSize();
 
     public boolean setRoutingEntry(int type, int value, int route, int power);
 
@@ -246,8 +256,6 @@ public interface DeviceHost {
     public int getDefaultMifareCLTPowerState();
 
     public int getDefaultFelicaCLTPowerState();
-
-    public int getGsmaPwrState();
 
     public boolean commitRouting();
 
@@ -285,6 +293,8 @@ public interface DeviceHost {
     boolean canMakeReadOnly(int technology);
 
     int getMaxTransceiveLength(int technology);
+
+    public int getAidTableSize();
 
     void setP2pInitiatorModes(int modes);
 
@@ -330,7 +340,14 @@ public interface DeviceHost {
 
     public boolean setNfcSecure(boolean enable);
 
-/* NXP extension are here */
+    public String getNfaStorageDir();
+
+    /**
+     * Start or stop RF polling
+     */
+    void startStopPolling(boolean enable);
+
+    /* NXP extension are here */
     public void doChangeDiscoveryTech(int pollTech, int listenTech);
     public boolean accessControlForCOSU (int mode);
 
@@ -350,4 +367,5 @@ public interface DeviceHost {
     public boolean doLockT4tData(boolean lock);
     public boolean isLockedT4tData();
     public boolean doClearNdefT4tData();
+    public int doEnableDebugNtf(byte fieldValue);
 }

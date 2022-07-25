@@ -1,3 +1,7 @@
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
 // NCI Configuration
 //ALLOW_MISSING_DEPENDENCIES = ["true"]
 android_app {
@@ -12,8 +16,9 @@ android_app {
     certificate: "platform",
     jni_libs: ["libsn100nfc_nci_jni"],
     libs: ["com.nxp.nfc.nq"],
+    uses_libs: ["com.nxp.nfc.nq"],
     static_libs: [
-        "android-support-core-utils",
+        "androidx.appcompat_appcompat",
         "vendor.nxp.hardware.nfc-V2.0-java",
         ],
     optimize: {

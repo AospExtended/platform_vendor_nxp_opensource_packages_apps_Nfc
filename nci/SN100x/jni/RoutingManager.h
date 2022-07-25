@@ -33,7 +33,7 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 *
-*  Copyright 2018-2020 NXP
+*  Copyright 2018-2021 NXP
 *
 ******************************************************************************/
 #pragma once
@@ -107,7 +107,6 @@ typedef struct routeInfo {
 class RoutingManager {
  public:
 #if(NXP_EXTNS == TRUE)
-  uint32_t mDefaultGsmaPowerState;
   static const uint8_t HOST_PWR_STATE = 0x11;
 #endif
   static RoutingManager& getInstance();
@@ -115,10 +114,8 @@ class RoutingManager {
   void deinitialize();
   void enableRoutingToHost();
   void disableRoutingToHost();
-#if(NXP_EXTNS != TRUE)
-  bool addAidRouting(const uint8_t* aid, uint8_t aidLen, int route,
-                     int aidInfo);
-#endif
+  bool addAidRouting(const uint8_t* aid, uint8_t aidLen, int route, int aidInfo,
+                     int power);
   bool removeAidRouting(const uint8_t* aid, uint8_t aidLen);
   bool commitRouting();
   int registerT3tIdentifier(uint8_t* t3tId, uint8_t t3tIdLen);
@@ -162,9 +159,7 @@ class RoutingManager {
     tNFA_HANDLE checkAndUpdateAltRoute(int& routeLoc);
 
     uint32_t getUicc2selected();
-    bool addAidRouting(const uint8_t* aid, uint8_t aidLen,
-                                   int route, int aidInfo, int power);
-    bool checkAndUpdatePowerState(int& power);
+    bool checkAndUpdatePowerState(uint8_t& power);
     bool isNfceeActive(int routeLoc, tNFA_HANDLE& ActDevHandle);
     uint16_t sRoutingBuffLen;
     uint8_t* sRoutingBuff;
@@ -228,6 +223,12 @@ class RoutingManager {
   uint16_t mDefaultSysCode;
   uint16_t mDefaultSysCodeRoute;
   uint8_t mDefaultSysCodePowerstate;
+  uint8_t mOffHostAidRoutingPowerState;
+#if(NXP_EXTNS != TRUE)
+  bool mDeinitializing;
+  bool mEeInfoChanged;
+  bool mAidRoutingConfigured;
+#endif
   bool mReceivedEeInfo;
   tNFA_EE_CBACK_DATA mCbEventData;
   tNFA_EE_DISCOVER_REQ mEeInfo;
@@ -272,18 +273,14 @@ class RoutingManager {
     int mHostListnTechMask;
     int mUiccListnTechMask;
     int mFwdFuntnEnable;
-    uint32_t mDefaultIso7816SeID;
-    uint32_t mDefaultIso7816Powerstate;
     uint32_t mDefaultTechASeID;
     uint32_t mDefaultTechFPowerstate;
     protoEntry_t mProtoTableEntries[MAX_PROTO_ENTRIES];
     techEntry_t mTechTableEntries[MAX_TECH_ENTRIES];
     LmrtEntry_t mLmrtEntries[MAX_ROUTE_LOC_ENTRIES];
-    uint32_t mCeRouteStrictDisable;
     uint32_t mTechSupportedByEse;
     uint32_t mTechSupportedByUicc1;
     uint32_t mTechSupportedByUicc2;
-    uint8_t mOffHostAidRoutingPowerState;
     uint8_t mHostListenTechMask;
 
 #endif

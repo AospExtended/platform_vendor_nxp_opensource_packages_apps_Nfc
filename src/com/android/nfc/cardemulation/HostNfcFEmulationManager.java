@@ -39,8 +39,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.nfc.cardemulation.NfcFServiceInfo;
 import android.nfc.cardemulation.HostNfcFService;
+import android.nfc.cardemulation.NfcFServiceInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -49,15 +49,13 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.util.Log;
+import android.util.proto.ProtoOutputStream;
 
 import com.android.nfc.NfcService;
 import com.android.nfc.NfcStatsLog;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import android.os.SystemProperties;
-
-import android.util.StatsLog;
 
 public class HostNfcFEmulationManager {
     static final String TAG = "HostNfcFEmulationManager";
@@ -256,10 +254,14 @@ public class HostNfcFEmulationManager {
             unbindServiceIfNeededLocked();
             Intent bindIntent = new Intent(HostNfcFService.SERVICE_INTERFACE);
             bindIntent.setComponent(service);
-            if (mContext.bindServiceAsUser(bindIntent, mConnection,
-                    Context.BIND_AUTO_CREATE, UserHandle.CURRENT)) {
-            } else {
-                Log.e(TAG, "Could not bind service.");
+            try {
+                mServiceBound = mContext.bindServiceAsUser(bindIntent, mConnection,
+                        Context.BIND_AUTO_CREATE, UserHandle.CURRENT);
+                if (!mServiceBound) {
+                    Log.e(TAG, "Could not bind service.");
+                }
+            } catch (SecurityException e) {
+                Log.e(TAG, "Could not bind service due to security exception.");
             }
             return null;
         }
@@ -397,6 +399,21 @@ public class HostNfcFEmulationManager {
         pw.println("Bound HCE-F services: ");
         if (mServiceBound) {
             pw.println("    service: " + mServiceName);
+        }
+    }
+
+    /**
+     * Dump debugging information as a HostNfcFEmulationManagerProto
+     *
+     * Note:
+     * See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
+     * When writing a nested message, must call {@link ProtoOutputStream#start(long)} before and
+     * {@link ProtoOutputStream#end(long)} after.
+     * Never reuse a proto field number. When removing a field, mark it as reserved.
+     */
+    void dumpDebug(ProtoOutputStream proto) {
+        if (mServiceBound) {
+            mServiceName.dumpDebug(proto, HostNfcFEmulationManagerProto.SERVICE_NAME);
         }
     }
 }

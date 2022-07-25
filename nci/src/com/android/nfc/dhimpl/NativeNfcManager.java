@@ -2,8 +2,8 @@
  * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  * Not a Contribution.
  *
- * Copyright (C) 2018-2020 NXP Semiconductors
- * The original Work has been changed by NXP Semiconductors.
+ * Copyright (C) 2018-2021 NXP
+ * The original Work has been changed by NXP.
  * Copyright (C) 2010 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,6 +126,7 @@ public class NativeNfcManager implements DeviceHost {
         switch(chip_id) {
             case "0xa3":
             case "0xa4":
+            case "0xc1":
                 libraryName = "sn100nfc_nci_jni";
                 break;
             case "0x51":
@@ -237,8 +238,7 @@ public class NativeNfcManager implements DeviceHost {
     }
 
     @Override
-    public native boolean routeAid(byte[] aid, int route, int aidInfo, int powerState);
-
+    public native boolean routeAid(byte[] aid, int route, int aidInfo, int power);
 
     @Override
     public native boolean unrouteAid(byte[] aid);
@@ -272,9 +272,6 @@ public class NativeNfcManager implements DeviceHost {
 
     @Override
     public native int   getDefaultFelicaCLTPowerState();
-
-    @Override
-    public native int getGsmaPwrState();
 
     @Override
     public native boolean commitRouting();
@@ -384,6 +381,9 @@ public class NativeNfcManager implements DeviceHost {
     public boolean mposGetReaderMode() {
         return mMposMgr.doMposGetReaderMode();
     }
+
+    @Override
+    public native int doEnableDebugNtf (byte fieldValue);
 
     @Override
     public int doWriteT4tData(byte[] fileId, byte[] data, int length) {
@@ -596,6 +596,15 @@ public class NativeNfcManager implements DeviceHost {
         return doSetNfcSecure(enable);
     }
 
+    @Override
+    public native String getNfaStorageDir();
+
+    private native void doStartStopPolling(boolean start);
+    @Override
+    public void startStopPolling(boolean start) {
+        doStartStopPolling(start);
+    }
+
     /**
      * Notifies Ndef Message (TODO: rename into notifyTargetDiscovered)
      */
@@ -613,6 +622,11 @@ public class NativeNfcManager implements DeviceHost {
     private void notifySeInitialized() {
         mListener.onSeInitialized();
     }
+
+    private void notifySrdEvt(int event) {
+        mListener.onNotifySrdEvt(event);
+    }
+
     /**
      * Notifies P2P Device detected, to activate LLCP link
      */
@@ -647,6 +661,10 @@ public class NativeNfcManager implements DeviceHost {
         mListener.onHostCardEmulationData(technology, data);
     }
 
+    private void notifyNfcDebugInfo(int len, byte[] data) {
+        mListener.onLxDebugConfigData(len, data);
+    }
+
     private void notifyHostEmuDeactivated(int technology) {
         mListener.onHostCardEmulationDeactivated(technology);
     }
@@ -659,8 +677,18 @@ public class NativeNfcManager implements DeviceHost {
         mListener.onRemoteFieldDeactivated();
     }
 
+    private void notifyHwErrorReported() {
+        mListener.onHwErrorReported();
+    }
+
     private void notifyTransactionListeners(byte[] aid, byte[] data, String evtSrc) {
         mListener.onNfcTransactionEvent(aid, data, evtSrc);
+    }
+    /**
+     * Notifies Tag abort operation
+     */
+    private void notifyTagAbort() {
+        mListener.notifyTagAbort();
     }
 /* NXP extension are here */
     @Override
